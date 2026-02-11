@@ -74,3 +74,6 @@ GitHub Actions builds index + runs tests on push/PR:
 - Changelog: `CHANGELOG.md`
 - Proof mapping: `PROOF.md`
 - Resume bullets: `RESUME_BULLETS.md`
+
+## Stack Coverage Extension
+- Planned gap-coverage work is tracked in `STACK_COVERAGE_PLAN.md`.
