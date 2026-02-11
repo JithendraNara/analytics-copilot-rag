@@ -2,6 +2,11 @@
 
 RAG-powered analytics assistant grounded in project docs, schemas, and KPI definitions.
 
+## Role Positioning
+- Primary fit: AI Engineer, Applied AI Engineer, Software Engineer (AI platform)
+- Showcase focus: grounded retrieval, safe SQL guardrails, evaluation harness
+- Resume mapping: see `PROOF.md` and `RESUME_BULLETS.md`
+
 ## Goals
 - Grounded Q&A over repository docs.
 - Safe SQL suggestion generation from known schema.
