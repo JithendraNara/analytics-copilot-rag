@@ -1,5 +1,50 @@
 [
   {
+    "id": "bi_semantics.md:1",
+    "source": "bi_semantics.md",
+    "text": "This document extends the copilot grounding set with cross-platform BI metric definitions."
+  },
+  {
+    "id": "bi_semantics.md:2",
+    "source": "bi_semantics.md",
+    "text": "## Power BI\n- Semantic model anchors:\n- `marts_daily_kpis`\n- `marts_channel_performance`\n- Key measure: conversion rate = paid conversions / new users.\n- Key measure: refund rate = refunded USD / gross revenue USD."
+  },
+  {
+    "id": "bi_semantics.md:3",
+    "source": "bi_semantics.md",
+    "text": "## Tableau\n- Workbook sections:\n- Daily KPI trend\n- Channel revenue mix\n- Experiment conversion comparison\n- Calculated field `Alert Flag` maps to threshold logic:\n- conversion rate below 0.03\n- refund rate above 0.12\n- net revenue below 3000"
+  },
+  {
+    "id": "bi_semantics.md:4",
+    "source": "bi_semantics.md",
+    "text": "## Looker\n- LookML explores:\n- `daily_kpis`\n- `channel_performance`\n- Core measures:\n- `net_revenue_usd`\n- `conversion_rate`\n- `paid_conversion_rate`"
+  },
+  {
+    "id": "bi_semantics.md:5",
+    "source": "bi_semantics.md",
+    "text": "## Cross-Tool Interpretation Rule\nIf a user asks for KPI interpretation, the copilot should answer with one semantic definition and one table source from the marts layer."
+  },
+  {
+    "id": "cloud_platforms.md:1",
+    "source": "cloud_platforms.md",
+    "text": "This note summarizes cloud deployment patterns referenced by the runbooks."
+  },
+  {
+    "id": "cloud_platforms.md:2",
+    "source": "cloud_platforms.md",
+    "text": "## AWS Pattern\n- Deploy API services to ECS Fargate.\n- Store secrets in AWS Secrets Manager.\n- Use EventBridge for schedules and CloudWatch for alarms.\n- Validate with `/health` and `/v1/eval` endpoints after deployment."
+  },
+  {
+    "id": "cloud_platforms.md:3",
+    "source": "cloud_platforms.md",
+    "text": "## Azure Pattern\n- Deploy API services to Azure Container Apps or AKS.\n- Store secrets in Azure Key Vault.\n- Use Azure Data Factory or scheduled jobs for orchestration.\n- Validate with `/health` and `/v1/eval` endpoints after deployment."
+  },
+  {
+    "id": "cloud_platforms.md:4",
+    "source": "cloud_platforms.md",
+    "text": "## Shared Operational Checks\n- Endpoint health is green.\n- Retrieval eval score is above baseline.\n- Alert or KPI endpoints match expected response schema."
+  },
+  {
     "id": "kpi_definitions.md:1",
     "source": "kpi_definitions.md",
     "text": "- `conversion_rate`: paid conversions divided by new users for a metric date.\n- `refund_rate`: refunded amount divided by gross revenue.\n- `net_revenue_usd`: gross revenue minus refunded amount.\n- `customer_health_score`: blended metric using sessions, revenue, tickets, and churn signals."

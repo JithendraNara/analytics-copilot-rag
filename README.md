@@ -81,3 +81,8 @@ GitHub Actions builds index + runs tests on push/PR:
 ## Deployment Runbooks
 - AWS: `docs/deploy/aws.md`
 - Azure: `docs/deploy/azure.md`
+
+## Knowledge Coverage Expansion
+- BI semantic references: `data/knowledge/bi_semantics.md`
+- Cloud operation references: `data/knowledge/cloud_platforms.md`
+- Evaluation set: `data/eval/questions.json`

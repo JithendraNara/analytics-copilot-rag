@@ -6,5 +6,21 @@
   {
     "question": "Which tables can I query safely?",
     "must_include": "marts_daily_kpis"
+  },
+  {
+    "question": "How is alert flag interpreted in Tableau?",
+    "must_include": "Alert Flag"
+  },
+  {
+    "question": "Where should Azure secrets be stored?",
+    "must_include": "Azure Key Vault"
+  },
+  {
+    "question": "What runtime is suggested on AWS?",
+    "must_include": "ECS Fargate"
+  },
+  {
+    "question": "Which LookML explore contains channel metrics?",
+    "must_include": "channel_performance"
   }
 ]
