@@ -77,3 +77,7 @@ GitHub Actions builds index + runs tests on push/PR:
 
 ## Stack Coverage Extension
 - Planned gap-coverage work is tracked in `STACK_COVERAGE_PLAN.md`.
+
+## Deployment Runbooks
+- AWS: `docs/deploy/aws.md`
+- Azure: `docs/deploy/azure.md`
