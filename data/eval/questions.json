@@ -1,26 +1,32 @@
 [
   {
     "question": "What does conversion_rate mean?",
-    "must_include": "paid conversions"
+    "must_include": "paid conversions",
+    "domain": "core_kpi"
   },
   {
     "question": "Which tables can I query safely?",
-    "must_include": "marts_daily_kpis"
+    "must_include": "marts_daily_kpis",
+    "domain": "core_kpi"
   },
   {
     "question": "How is alert flag interpreted in Tableau?",
-    "must_include": "Alert Flag"
+    "must_include": "Alert Flag",
+    "domain": "bi_semantics"
   },
   {
     "question": "Where should Azure secrets be stored?",
-    "must_include": "Azure Key Vault"
+    "must_include": "Azure Key Vault",
+    "domain": "cloud_ops"
   },
   {
     "question": "What runtime is suggested on AWS?",
-    "must_include": "ECS Fargate"
+    "must_include": "ECS Fargate",
+    "domain": "cloud_ops"
   },
   {
     "question": "Which LookML explore contains channel metrics?",
-    "must_include": "channel_performance"
+    "must_include": "channel_performance",
+    "domain": "bi_semantics"
   }
 ]

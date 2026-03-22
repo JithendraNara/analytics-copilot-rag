@@ -28,3 +28,7 @@ class EvalResponse(BaseModel):
     total: int
     passed: int
     score: float
+    domain_breakdown: dict[str, dict[str, float | int]] = Field(
+        default_factory=dict,
+        description="Score breakdown per domain, e.g. {'core_kpi': {'total': 2, 'passed': 1, 'score': 0.5}}"
+    )

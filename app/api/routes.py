@@ -59,13 +59,36 @@ def evaluate() -> EvalResponse:
         raise HTTPException(status_code=500, detail=f"missing eval set: {EVAL_PATH}")
 
     tests = json.loads(EVAL_PATH.read_text(encoding="utf-8"))
-    passed = 0
+
+    domain_results: dict[str, dict[str, int]] = {}
     for test in tests:
+        domain = test.get("domain", "unknown")
+        if domain not in domain_results:
+            domain_results[domain] = {"total": 0, "passed": 0}
+
         matches = retrieve(test["question"], docs, top_k=2)
         joined = " ".join(m["text"] for m in matches).lower()
+        domain_results[domain]["total"] += 1
         if test["must_include"].lower() in joined:
-            passed += 1
+            domain_results[domain]["passed"] += 1
 
+    domain_breakdown: dict[str, dict[str, float | int]] = {}
+    for domain, counts in domain_results.items():
+        total = counts["total"]
+        passed = counts["passed"]
+        domain_breakdown[domain] = {
+            "total": total,
+            "passed": passed,
+            "score": round(passed / total, 4) if total else 0.0,
+        }
+
+    all_passed = sum(d["passed"] for d in domain_results.values())
     total = len(tests)
-    score = (passed / total) if total else 0.0
-    return EvalResponse(total=total, passed=passed, score=round(score, 4))
+    overall_score = round(all_passed / total, 4) if total else 0.0
+
+    return EvalResponse(
+        total=total,
+        passed=all_passed,
+        score=overall_score,
+        domain_breakdown=domain_breakdown,
+    )
