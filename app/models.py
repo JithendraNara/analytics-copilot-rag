@@ -24,7 +24,17 @@ class SQLSuggestResponse(BaseModel):
     rationale: str
 
 
+class DomainScore(BaseModel):
+    total: int
+    passed: int
+    score: float
+
+
 class EvalResponse(BaseModel):
     total: int
     passed: int
     score: float
+    domain_breakdown: dict[str, DomainScore] = Field(
+        default_factory=dict,
+        description="Score breakdown per domain, e.g. {'core_kpi': {'total': 2, 'passed': 1, 'score': 0.5}}"
+    )

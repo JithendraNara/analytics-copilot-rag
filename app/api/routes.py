@@ -5,9 +5,10 @@ import json
 from fastapi import APIRouter, HTTPException
 
 from app.core.settings import EVAL_PATH, INDEX_PATH, KNOWLEDGE_DIR
-from app.models import AskRequest, AskResponse, EvalResponse, SQLSuggestRequest, SQLSuggestResponse
+from app.models import AskRequest, AskResponse, DomainScore, EvalResponse, SQLSuggestRequest, SQLSuggestResponse
 from app.retrieval.indexer import build_index, load_index
 from app.retrieval.retriever import retrieve
+from app.safety import check_question
 from app.sql_guardrails import suggest_sql
 
 router = APIRouter()
@@ -26,6 +27,13 @@ def rebuild_index() -> dict[str, object]:
 
 @router.post("/v1/ask", response_model=AskResponse)
 def ask(req: AskRequest) -> AskResponse:
+    safe, reason = check_question(req.question)
+    if not safe:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Question blocked: potentially adversarial input detected ({reason})",
+        )
+
     docs = load_index(INDEX_PATH)
     if not docs:
         docs = build_index(KNOWLEDGE_DIR, INDEX_PATH)
@@ -59,13 +67,40 @@ def evaluate() -> EvalResponse:
         raise HTTPException(status_code=500, detail=f"missing eval set: {EVAL_PATH}")
 
     tests = json.loads(EVAL_PATH.read_text(encoding="utf-8"))
-    passed = 0
-    for test in tests:
+
+    domain_results: dict[str, dict[str, int]] = {}
+    for idx, test in enumerate(tests):
+        domain = test.get("domain")
+        if not isinstance(domain, str) or not domain.strip():
+            raise HTTPException(
+                status_code=500,
+                detail=f"invalid or missing 'domain' in eval test at index {idx}",
+            )
+        domain = domain.strip()
+        domain_results.setdefault(domain, {"total": 0, "passed": 0})
+
         matches = retrieve(test["question"], docs, top_k=2)
         joined = " ".join(m["text"] for m in matches).lower()
+        domain_results[domain]["total"] += 1
         if test["must_include"].lower() in joined:
-            passed += 1
+            domain_results[domain]["passed"] += 1
 
+    domain_breakdown: dict[str, DomainScore] = {
+        domain: DomainScore(
+            total=counts["total"],
+            passed=counts["passed"],
+            score=round(counts["passed"] / counts["total"], 4) if counts["total"] else 0.0,
+        )
+        for domain, counts in domain_results.items()
+    }
+
+    all_passed = sum(d["passed"] for d in domain_results.values())
     total = len(tests)
-    score = (passed / total) if total else 0.0
-    return EvalResponse(total=total, passed=passed, score=round(score, 4))
+    overall_score = round(all_passed / total, 4) if total else 0.0
+
+    return EvalResponse(
+        total=total,
+        passed=all_passed,
+        score=overall_score,
+        domain_breakdown=domain_breakdown,
+    )
