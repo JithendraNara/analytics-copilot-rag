@@ -8,6 +8,7 @@ from app.core.settings import EVAL_PATH, INDEX_PATH, KNOWLEDGE_DIR
 from app.models import AskRequest, AskResponse, DomainScore, EvalResponse, SQLSuggestRequest, SQLSuggestResponse
 from app.retrieval.indexer import build_index, load_index
 from app.retrieval.retriever import retrieve
+from app.safety import check_question
 from app.sql_guardrails import suggest_sql
 
 router = APIRouter()
@@ -26,6 +27,13 @@ def rebuild_index() -> dict[str, object]:
 
 @router.post("/v1/ask", response_model=AskResponse)
 def ask(req: AskRequest) -> AskResponse:
+    safe, reason = check_question(req.question)
+    if not safe:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Question blocked: potentially adversarial input detected ({reason})",
+        )
+
     docs = load_index(INDEX_PATH)
     if not docs:
         docs = build_index(KNOWLEDGE_DIR, INDEX_PATH)
