@@ -5,7 +5,7 @@ import json
 from fastapi import APIRouter, HTTPException
 
 from app.core.settings import EVAL_PATH, INDEX_PATH, KNOWLEDGE_DIR
-from app.models import AskRequest, AskResponse, EvalResponse, SQLSuggestRequest, SQLSuggestResponse
+from app.models import AskRequest, AskResponse, DomainScore, EvalResponse, SQLSuggestRequest, SQLSuggestResponse
 from app.retrieval.indexer import build_index, load_index
 from app.retrieval.retriever import retrieve
 from app.sql_guardrails import suggest_sql
@@ -63,8 +63,7 @@ def evaluate() -> EvalResponse:
     domain_results: dict[str, dict[str, int]] = {}
     for test in tests:
         domain = test.get("domain", "unknown")
-        if domain not in domain_results:
-            domain_results[domain] = {"total": 0, "passed": 0}
+        domain_results.setdefault(domain, {"total": 0, "passed": 0})
 
         matches = retrieve(test["question"], docs, top_k=2)
         joined = " ".join(m["text"] for m in matches).lower()
@@ -72,15 +71,14 @@ def evaluate() -> EvalResponse:
         if test["must_include"].lower() in joined:
             domain_results[domain]["passed"] += 1
 
-    domain_breakdown: dict[str, dict[str, float | int]] = {}
-    for domain, counts in domain_results.items():
-        total = counts["total"]
-        passed = counts["passed"]
-        domain_breakdown[domain] = {
-            "total": total,
-            "passed": passed,
-            "score": round(passed / total, 4) if total else 0.0,
-        }
+    domain_breakdown: dict[str, DomainScore] = {
+        domain: DomainScore(
+            total=counts["total"],
+            passed=counts["passed"],
+            score=round(counts["passed"] / counts["total"], 4) if counts["total"] else 0.0,
+        )
+        for domain, counts in domain_results.items()
+    }
 
     all_passed = sum(d["passed"] for d in domain_results.values())
     total = len(tests)
