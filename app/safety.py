@@ -47,9 +47,6 @@ _SUSPICIOUS_PATTERNS = (
     + DELIMITER_PATTERNS
 )
 
-_COMBINED_RE = re.compile("|".join(_SUSPICIOUS_PATTERNS), re.IGNORECASE)
-
-
 def is_safe(question: str) -> bool:
     """
     Returns True if the question appears safe.
@@ -58,7 +55,17 @@ def is_safe(question: str) -> bool:
     or jailbreak patterns. False does NOT mean the content is
     malicious — only that it matched safety filters.
     """
-    return not _COMBINED_RE.search(question)
+    safe, _ = check_question(question)
+    return safe
+
+
+def _match_patterns(question: str, patterns: list[str], label: str) -> tuple[bool, str]:
+    """Scan question against a list of patterns. Returns (blocked, reason)."""
+    for pattern in patterns:
+        m = re.search(pattern, question, re.IGNORECASE)
+        if m:
+            return False, f"{label}: '{m.group()}'"
+    return True, ""
 
 
 def check_question(question: str) -> tuple[bool, str]:
@@ -72,19 +79,16 @@ def check_question(question: str) -> tuple[bool, str]:
     if not question or not question.strip():
         return False, "empty question"
 
-    for pattern in INSTRUCTION_OVERRIDE_PATTERNS:
-        m = re.search(pattern, question, re.IGNORECASE)
-        if m:
-            return False, f"instruction override attempt: '{m.group()}'"
+    safe, reason = _match_patterns(question, INSTRUCTION_OVERRIDE_PATTERNS,
+                                   "instruction override attempt")
+    if not safe:
+        return False, reason
 
-    for pattern in ROLE_PLAY_PATTERNS:
-        m = re.search(pattern, question, re.IGNORECASE)
-        if m:
-            return False, f"jailbreak/role-play attempt: '{m.group()}'"
+    safe, reason = _match_patterns(question, ROLE_PLAY_PATTERNS,
+                                   "jailbreak/role-play attempt")
+    if not safe:
+        return False, reason
 
-    for pattern in DELIMITER_PATTERNS:
-        m = re.search(pattern, question, re.IGNORECASE)
-        if m:
-            return False, f"delimiter injection attempt: '{m.group()}'"
-
-    return True, ""
+    safe, reason = _match_patterns(question, DELIMITER_PATTERNS,
+                                   "delimiter injection attempt")
+    return safe, reason
