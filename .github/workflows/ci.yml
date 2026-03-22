@@ -18,6 +18,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: Build index and run tests
+        env:
+          PYTHONPATH: .
         run: |
           python scripts/build_index.py
           pytest -q
