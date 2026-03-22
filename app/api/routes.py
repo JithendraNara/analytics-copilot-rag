@@ -61,8 +61,14 @@ def evaluate() -> EvalResponse:
     tests = json.loads(EVAL_PATH.read_text(encoding="utf-8"))
 
     domain_results: dict[str, dict[str, int]] = {}
-    for test in tests:
-        domain = test.get("domain", "unknown")
+    for idx, test in enumerate(tests):
+        domain = test.get("domain")
+        if not isinstance(domain, str) or not domain.strip():
+            raise HTTPException(
+                status_code=500,
+                detail=f"invalid or missing 'domain' in eval test at index {idx}",
+            )
+        domain = domain.strip()
         domain_results.setdefault(domain, {"total": 0, "passed": 0})
 
         matches = retrieve(test["question"], docs, top_k=2)
