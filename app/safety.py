@@ -19,7 +19,6 @@ INSTRUCTION_OVERRIDE_PATTERNS = [
     r"ignore\s+(all\s+)?previous\s+(instructions?|rules?|guidelines?)",
     r"disregard\s+(all\s+)?(previous\s+)?(instructions?|rules?|guidelines?)",
     r"forget\s+(all\s+)?(previous\s+)?(instructions?|rules?|guidelines?)",
-    r"new\s+instruction",
     r"override\s+(your\s+)?(system|safety|content)\s*(policy|rules|guidelines)",
     r"(forget|erase|clear)\s+(all\s+)?(your\s+)?(memory|context|session|history)",
 ]

@@ -117,6 +117,11 @@ class TestSafetyModule:
         # Should not be blocked — legitimate use of "ignore"
         assert result is True
 
+    def test_legitimate_new_instruction(self) -> None:
+        # "new instruction" should not trigger in legitimate contexts
+        result = is_safe("What is the new instruction set for the onboarding process?")
+        assert result is True
+
 
 # ─── API integration tests ───────────────────────────────────────────────────
 
