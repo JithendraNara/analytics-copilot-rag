@@ -2,27 +2,147 @@
   {
     "id": "bi_semantics.md:1",
     "source": "bi_semantics.md",
-    "text": "This document extends the copilot grounding set with cross-platform BI metric definitions."
+    "text": "This document extends the copilot grounding set with cross-platform BI metric definitions, KPI interpretation rules, and alerting thresholds. The copilot uses this to answer questions about metrics across Power BI, Tableau, Looker, and other BI tools, and to route questions to the correct semantic layer."
   },
   {
     "id": "bi_semantics.md:2",
     "source": "bi_semantics.md",
-    "text": "## Power BI\n- Semantic model anchors:\n- `marts_daily_kpis`\n- `marts_channel_performance`\n- Key measure: conversion rate = paid conversions / new users.\n- Key measure: refund rate = refunded USD / gross revenue USD."
+    "text": "### conversion_rate\n- **Formula:** `paid_conversions / new_users` for a given metric date\n- **Context:** Used to measure the efficiency of turning new visitors into paying customers. Primary KPI tracked in `marts_daily_kpis`.\n- **Alert threshold:** Below 0.03 (3%) triggers an Alert Flag in Tableau."
   },
   {
     "id": "bi_semantics.md:3",
     "source": "bi_semantics.md",
-    "text": "## Tableau\n- Workbook sections:\n- Daily KPI trend\n- Channel revenue mix\n- Experiment conversion comparison\n- Calculated field `Alert Flag` maps to threshold logic:\n- conversion rate below 0.03\n- refund rate above 0.12\n- net revenue below 3000"
+    "text": "### refund_rate\n- **Formula:** `refunded_usd / gross_revenue_usd`\n- **Context:** Measures payment quality and transaction health. Spikes indicate chargeback risk or product dissatisfaction.\n- **Alert threshold:** Above 0.12 (12%) triggers an Alert Flag in Tableau."
   },
   {
     "id": "bi_semantics.md:4",
     "source": "bi_semantics.md",
-    "text": "## Looker\n- LookML explores:\n- `daily_kpis`\n- `channel_performance`\n- Core measures:\n- `net_revenue_usd`\n- `conversion_rate`\n- `paid_conversion_rate`"
+    "text": "### net_revenue_usd\n- **Formula:** `gross_revenue_usd - refunded_usd`\n- **Context:** True revenue after chargebacks and refunds. Reported as the bottom-line revenue figure in all dashboards.\n- **Alert threshold:** Below $3,000 per reporting period triggers an Alert Flag in Tableau."
   },
   {
     "id": "bi_semantics.md:5",
     "source": "bi_semantics.md",
-    "text": "## Cross-Tool Interpretation Rule\nIf a user asks for KPI interpretation, the copilot should answer with one semantic definition and one table source from the marts layer."
+    "text": "### paid_conversion_rate\n- **Formula:** `paid_conversions / new_users` (subset of conversion_rate, counts only paid conversions)\n- **Context:** Looker-specific measure. More selective than conversion_rate since it excludes free-trial conversions.\n- **LookML explore:** `channel_performance`"
+  },
+  {
+    "id": "bi_semantics.md:6",
+    "source": "bi_semantics.md",
+    "text": "### customer_health_score\n- **Formula:** Blended metric combining sessions, revenue, support tickets, and churn risk signals.\n- **Context:** Composite score used to identify at-risk or high-value customers. Tracked in `marts_customer_health`.\n- **Interpretation:** Higher is better. Below threshold triggers proactive outreach runbooks."
+  },
+  {
+    "id": "bi_semantics.md:7",
+    "source": "bi_semantics.md",
+    "text": "### Semantic Model Anchors\n- `marts_daily_kpis` \u2014 Primary daily KPI rollup including conversion rate, refund rate, and net revenue.\n- `marts_channel_performance` \u2014 Channel-level breakdown of acquisition metrics.\n- `marts_experiment_performance` \u2014 A/B test results by channel and variant."
+  },
+  {
+    "id": "bi_semantics.md:8",
+    "source": "bi_semantics.md",
+    "text": "### Measures Reference\n| Measure | Table | Formula |\n|---|---|---|\n| `conversion_rate` | marts_daily_kpis | paid_conversions / new_users |\n| `refund_rate` | marts_daily_kpis | refunded_usd / gross_revenue_usd |\n| `net_revenue_usd` | marts_daily_kpis | gross_revenue_usd - refunded_usd |\n| `paid_conversion_rate` | marts_channel_performance | paid_conversions / new_users |"
+  },
+  {
+    "id": "bi_semantics.md:9",
+    "source": "bi_semantics.md",
+    "text": "### KPI Interpretation Guidelines (Power BI)\nWhen a user asks about a KPI trend in Power BI, the copilot should:\n1. Identify the metric name and its source table\n2. Explain the formula in plain language\n3. Note the applicable Alert Flag threshold if relevant\n4. Reference the marts layer as the canonical source"
+  },
+  {
+    "id": "bi_semantics.md:10",
+    "source": "bi_semantics.md",
+    "text": "### Workbook Sections\n- **Daily KPI Trend** \u2014 Time-series view of all core KPIs (conversion rate, refund rate, net revenue) per day.\n- **Channel Revenue Mix** \u2014 Breakdown of net revenue by acquisition channel (paid, organic, referral, etc.).\n- **Experiment Conversion Comparison** \u2014 Side-by-side conversion rates for active A/B test variants."
+  },
+  {
+    "id": "bi_semantics.md:11",
+    "source": "bi_semantics.md",
+    "text": "### Alert Flag Threshold Logic\nThe `Alert Flag` calculated field applies to all three core KPIs:"
+  },
+  {
+    "id": "bi_semantics.md:12",
+    "source": "bi_semantics.md",
+    "text": "```\nIF conversion_rate < 0.03 THEN flag = TRUE\nIF refund_rate > 0.12 THEN flag = TRUE\nIF net_revenue_usd < 3000 THEN flag = TRUE\n```"
+  },
+  {
+    "id": "bi_semantics.md:13",
+    "source": "bi_semantics.md",
+    "text": "When a row triggers the Alert Flag, the runbook directive is:\n- `conversion_rate` low \u2192 inspect experiment split and channel mix\n- `refund_rate` high \u2192 inspect payment quality and failed transactions\n- `net_revenue_usd` low \u2192 review traffic quality and funnel drop-off"
+  },
+  {
+    "id": "bi_semantics.md:14",
+    "source": "bi_semantics.md",
+    "text": "### Tableau Metric Mapping\n| Tableau Field | Copilot Alias | Source Table |\n|---|---|---|\n| `Conversion Rate` | conversion_rate | marts_daily_kpis |\n| `Refund Rate` | refund_rate | marts_daily_kpis |\n| `Net Revenue` | net_revenue_usd | marts_daily_kpis |\n| `Channel` | channel_name | marts_channel_performance |\n| `Variant` | experiment_variant | marts_experiment_performance |"
+  },
+  {
+    "id": "bi_semantics.md:15",
+    "source": "bi_semantics.md",
+    "text": "### LookML Explores\n- `daily_kpis` \u2014 Daily aggregated KPIs with date drill-down.\n- `channel_performance` \u2014 Channel-level acquisition and conversion metrics.\n- `customer_health` \u2014 Customer-level health scores and risk signals."
+  },
+  {
+    "id": "bi_semantics.md:16",
+    "source": "bi_semantics.md",
+    "text": "### Core Measures Reference\n| LookML Measure | Definition |\n|---|---|\n| `net_revenue_usd` | Gross revenue minus refunds |\n| `conversion_rate` | Conversions divided by sessions or users |\n| `paid_conversion_rate` | Paid-channel conversions divided by new paid users |\n| `customer_health_score` | Blended risk/satisfaction score |"
+  },
+  {
+    "id": "bi_semantics.md:17",
+    "source": "bi_semantics.md",
+    "text": "### Looker -> SQL Mapping\nWhen Looker questions are translated to SQL suggestions:\n- Use `marts_daily_kpis` for daily rollups\n- Use `marts_channel_performance` for channel breakdowns\n- Apply the same threshold rules from the Alert Flag logic"
+  },
+  {
+    "id": "bi_semantics.md:18",
+    "source": "bi_semantics.md",
+    "text": "## Cross-Platform Interpretation Rules"
+  },
+  {
+    "id": "bi_semantics.md:19",
+    "source": "bi_semantics.md",
+    "text": "### Rule 1: One Semantic Definition + One Table Source\nIf a user asks for KPI interpretation, the copilot must provide:\n1. The metric definition in plain language\n2. The formula\n3. The specific marts table that serves as the canonical source"
+  },
+  {
+    "id": "bi_semantics.md:20",
+    "source": "bi_semantics.md",
+    "text": "Example answer format:\n> \"conversion_rate is the ratio of paid conversions to new users. Formula: paid_conversions / new_users. Canonical source: marts_daily_kpis.\""
+  },
+  {
+    "id": "bi_semantics.md:21",
+    "source": "bi_semantics.md",
+    "text": "### Rule 2: Threshold Alert Routing\nWhen a user asks about an alert or threshold:\n1. Identify which KPI is involved\n2. Retrieve the applicable threshold from the Alert Flag logic\n3. Reference the correct Tableau or Looker field name\n4. Pull the runbook directive from the operational runbook"
+  },
+  {
+    "id": "bi_semantics.md:22",
+    "source": "bi_semantics.md",
+    "text": "### Rule 3: Channel vs. Experiment Attribution\nWhen a user asks \"which channel or experiment is driving changes\":\n- Route to `marts_channel_performance` for channel attribution\n- Route to `marts_experiment_performance` for experiment attribution\n- Cross-reference both when the question involves both"
+  },
+  {
+    "id": "bi_semantics.md:23",
+    "source": "bi_semantics.md",
+    "text": "### Rule 4: Health Score Interpretation\nCustomer health score questions should:\n- Use `marts_customer_health` as the source table\n- Reference the blended component signals (sessions, revenue, tickets, churn)\n- Flag scores below the documented threshold for proactive action"
+  },
+  {
+    "id": "bi_semantics.md:24",
+    "source": "bi_semantics.md",
+    "text": "## Additional BI Tools (Extension Notes)"
+  },
+  {
+    "id": "bi_semantics.md:25",
+    "source": "bi_semantics.md",
+    "text": "### Metabase / Redash\n- Ad-hoc SQL querying against the same mart tables\n- Use `marts_daily_kpis` for daily aggregates\n- Expose `conversion_rate` and `net_revenue_usd` as the primary public metrics"
+  },
+  {
+    "id": "bi_semantics.md:26",
+    "source": "bi_semantics.md",
+    "text": "### Sigma Computing\n- Spreadsheet-like interface on top of the warehouse\n- Same semantic layer as Looker \u2014 `daily_kpis` and `channel_performance` explores apply\n- Metric references map directly to Looker naming conventions"
+  },
+  {
+    "id": "bi_semantics.md:27",
+    "source": "bi_semantics.md",
+    "text": "### Mode Analytics\n- Primarily used for longitudinal reporting and cohort analysis\n- SQL-first; copilot can suggest safe templates using `marts_daily_kpis` and `marts_customer_health`\n- Does not expose the Alert Flag calculated field; threshold logic must be applied manually in SQL"
+  },
+  {
+    "id": "bi_semantics.md:28",
+    "source": "bi_semantics.md",
+    "text": "## Retrieval Routing Quick Reference"
+  },
+  {
+    "id": "bi_semantics.md:29",
+    "source": "bi_semantics.md",
+    "text": "| User Question Type | Route To | Answer Template |\n|---|---|---|\n| \"What is conversion_rate?\" | kpi_definitions + bi_semantics | Plain-language formula + table source |\n| \"Why is my dashboard showing an alert?\" | bi_semantics (Tableau section) | Alert Flag logic + runbook directive |\n| \"Which LookML explore has channel metrics?\" | bi_semantics (Looker section) | `channel_performance` + measures list |\n| \"How is customer health scored?\" | bi_seminitions + kpi_definitions | Blended formula + marts_customer_health |\n| \"Which experiment is performing best?\" | schema.md + experiment_marts | marts_experiment_performance + variant breakdown |\n| \"What is the refund rate trend?\" | bi_semantics + schema | Refund rate formula + marts_daily_kpis |"
   },
   {
     "id": "cloud_platforms.md:1",

@@ -28,5 +28,65 @@
     "question": "Which LookML explore contains channel metrics?",
     "must_include": "channel_performance",
     "domain": "bi_semantics"
+  },
+  {
+    "question": "What is the formula for net_revenue_usd?",
+    "must_include": "gross_revenue",
+    "domain": "bi_semantics"
+  },
+  {
+    "question": "What triggers the Alert Flag in Tableau?",
+    "must_include": "refund_rate",
+    "domain": "bi_semantics"
+  },
+  {
+    "question": "Which Looker explore has customer health data?",
+    "must_include": "customer_health",
+    "domain": "bi_semantics"
+  },
+  {
+    "question": "How is customer_health_score calculated?",
+    "must_include": "churn",
+    "domain": "bi_semantics"
+  },
+  {
+    "question": "What should I do if refund_rate spikes above the threshold?",
+    "must_include": "payment quality",
+    "domain": "bi_semantics"
+  },
+  {
+    "question": "What is paid_conversion_rate in Looker?",
+    "must_include": "paid conversions",
+    "domain": "bi_semantics"
+  },
+  {
+    "question": "Which table should I query to see daily conversion trends?",
+    "must_include": "marts_daily_kpis",
+    "domain": "bi_semantics"
+  },
+  {
+    "question": "What is the alert threshold for net_revenue_usd?",
+    "must_include": "3000",
+    "domain": "bi_semantics"
+  },
+  {
+    "question": "How do I route a question about experiment performance?",
+    "must_include": "marts_experiment_performance",
+    "domain": "bi_semantics"
+  },
+  {
+    "question": "What is the Alert Flag rule for conversion_rate in Tableau?",
+    "must_include": "0.03",
+    "domain": "bi_semantics"
+  },
+  {
+    "question": "Which Power BI semantic models contain daily KPIs?",
+    "must_include": "marts_daily_kpis",
+    "domain": "bi_semantics"
+  },
+  {
+    "question": "How does the cross-tool interpretation rule work?",
+    "must_include": "marts layer",
+    "domain": "bi_semantics"
   }
 ]
