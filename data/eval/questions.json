@@ -66,7 +66,7 @@
   },
   {
     "question": "What is the alert threshold for net_revenue_usd?",
-    "must_include": "3000",
+    "must_include": "3,000",
     "domain": "bi_semantics"
   },
   {
@@ -87,6 +87,46 @@
   {
     "question": "How does the cross-tool interpretation rule work?",
     "must_include": "marts layer",
+    "domain": "bi_semantics"
+  },
+  {
+    "question": "Which BI tools support ad-hoc SQL querying against mart tables?",
+    "must_include": "Metabase",
+    "domain": "bi_semantics"
+  },
+  {
+    "question": "What semantic layer does Sigma Computing share with Looker?",
+    "must_include": "daily_kpis",
+    "domain": "bi_semantics"
+  },
+  {
+    "question": "Which BI tool is primarily used for longitudinal reporting and cohort analysis?",
+    "must_include": "Mode Analytics",
+    "domain": "bi_semantics"
+  },
+  {
+    "question": "What is the alert threshold for refund_rate?",
+    "must_include": "0.12",
+    "domain": "bi_semantics"
+  },
+  {
+    "question": "Which Tableau workbook shows side-by-side experiment conversion rates?",
+    "must_include": "Experiment Conversion Comparison",
+    "domain": "bi_semantics"
+  },
+  {
+    "question": "What steps should I follow when conversion_rate drops?",
+    "must_include": "marts_channel_performance",
+    "domain": "bi_semantics"
+  },
+  {
+    "question": "How can I tell if my marts data is stale?",
+    "must_include": "metric_date",
+    "domain": "bi_semantics"
+  },
+  {
+    "question": "What source table does Mode Analytics use for churn and retention metrics?",
+    "must_include": "marts_customer_health",
     "domain": "bi_semantics"
   }
 ]
