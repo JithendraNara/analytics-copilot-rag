@@ -3,6 +3,7 @@
 This note summarizes cloud deployment patterns referenced by the runbooks.
 
 ## AWS Pattern
+- ECS Fargate is the suggested runtime for AWS deployments.
 - Deploy API services to ECS Fargate.
 - Store secrets in AWS Secrets Manager.
 - Use EventBridge for schedules and CloudWatch for alarms.

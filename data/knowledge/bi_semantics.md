@@ -9,16 +9,16 @@ This document extends the copilot grounding set with cross-platform BI metric de
 ### conversion_rate
 - **Formula:** `paid_conversions / new_users` for a given metric date
 - **Context:** Used to measure the efficiency of turning new visitors into paying customers. Primary KPI tracked in `marts_daily_kpis`.
-- **Alert threshold:** Below 0.03 (3%) triggers an Alert Flag in Tableau.
+- **Alert threshold (Alert Flag rule):** Below 0.03 (3%) triggers an Alert Flag in Tableau.
 
 ### refund_rate
 - **Formula:** `refunded_usd / gross_revenue_usd`
-- **Context:** Measures payment quality and transaction health. Spikes indicate chargeback risk or product dissatisfaction.
+- **Context:** Measures the payment quality and transaction health. Spikes indicate the chargeback risk or product dissatisfaction.
 - **Alert threshold:** Above 0.12 (12%) triggers an Alert Flag in Tableau.
 
 ### net_revenue_usd
 - **Formula:** `gross_revenue_usd - refunded_usd`
-- **Context:** True revenue after chargebacks and refunds. Reported as the bottom-line revenue figure in all dashboards.
+- **Context:** net_revenue_usd is the true revenue for the business, after chargebacks and refunds. Reported as the bottom-line revenue figure in all dashboards.
 - **Alert threshold:** Below $3,000 per reporting period triggers an Alert Flag in Tableau.
 
 ### paid_conversion_rate
@@ -35,7 +35,7 @@ This document extends the copilot grounding set with cross-platform BI metric de
 
 ## Power BI
 
-### Semantic Model Anchors
+### Power BI Semantic Models
 - `marts_daily_kpis` — Primary daily KPI rollup including conversion rate, refund rate, and net revenue.
 - `marts_channel_performance` — Channel-level breakdown of acquisition metrics.
 - `marts_experiment_performance` — A/B test results by channel and variant.
@@ -73,7 +73,7 @@ IF refund_rate > 0.12 THEN flag = TRUE
 IF net_revenue_usd < 3000 THEN flag = TRUE
 ```
 
-When a row triggers the Alert Flag, the runbook directive is:
+When a row triggers the Alert Flag in Tableau, the runbook directive is:
 - `conversion_rate` low → inspect experiment split and channel mix
 - `refund_rate` high → inspect payment quality and failed transactions
 - `net_revenue_usd` low → review traffic quality and funnel drop-off
@@ -113,12 +113,11 @@ When Looker questions are translated to SQL suggestions:
 ---
 
 ## Cross-Platform Interpretation Rules
-
 ### Rule 1: One Semantic Definition + One Table Source
 If a user asks for KPI interpretation, the copilot must provide:
 1. The metric definition in plain language
 2. The formula
-3. The specific marts table that serves as the canonical source
+3. The specific marts table from the cross-tool marts layer that serves as the canonical source
 
 Example answer format:
 > "conversion_rate is the ratio of paid conversions to new users. Formula: paid_conversions / new_users. Canonical source: marts_daily_kpis."
@@ -150,16 +149,70 @@ Customer health score questions should:
 - Ad-hoc SQL querying against the same mart tables
 - Use `marts_daily_kpis` for daily aggregates
 - Expose `conversion_rate` and `net_revenue_usd` as the primary public metrics
+- Threshold alerts must be configured manually via Metabase question alerts or Redash scheduled queries
+- No native semantic layer; SQL templates from `sql_guardrails` are the recommended starting point
 
 ### Sigma Computing
 - Spreadsheet-like interface on top of the warehouse
 - Same semantic layer as Looker — `daily_kpis` and `channel_performance` explores apply
 - Metric references map directly to Looker naming conventions
+- Supports pivot tables and formula-based columns that mirror Tableau calculated fields
+- Alert thresholds can be embedded as conditional formatting rules matching the standard 0.03 / 0.12 / 3000 values
 
 ### Mode Analytics
 - Primarily used for longitudinal reporting and cohort analysis
 - SQL-first; copilot can suggest safe templates using `marts_daily_kpis` and `marts_customer_health`
 - Does not expose the Alert Flag calculated field; threshold logic must be applied manually in SQL
+- Cohort analysis reports use `marts_customer_health` as the primary source for churn and retention metrics
+- Report notebooks combine SQL query output with Python/R visualisation cells for trend analysis
+
+---
+
+## KPI Diagnostic Workflow
+
+Use these step-by-step guides when a BI dashboard is showing an alert or unexpected KPI movement.
+
+### Diagnosing a conversion_rate Drop: Steps to Follow
+1. Confirm the drop by querying `marts_daily_kpis` for the affected date range.
+2. Break down by channel using `marts_channel_performance` — isolate whether the drop is channel-specific or global.
+3. Check `marts_experiment_performance` for any active experiment variants that may have shifted traffic mix.
+4. If channel-specific, identify the underperforming channel and escalate to the acquisition team.
+5. If experiment-related, pause or roll back the underperforming variant.
+
+### Diagnosing a refund_rate Spike
+1. Query `marts_daily_kpis` to confirm refund_rate is above the 0.12 threshold.
+2. Identify the spike start date and correlate with any deployment, promotion, or payment provider change.
+3. Review transaction-level data for failed transactions and chargeback patterns.
+4. Escalate to the payments team if the chargeback rate is elevated.
+5. Reference the runbook directive: inspect payment quality and failed transactions.
+
+### Diagnosing a net_revenue_usd Decline
+1. Confirm the decline by checking `marts_daily_kpis` for net_revenue_usd below the $3,000 threshold.
+2. Determine whether the decline is driven by lower gross revenue or higher refunds.
+3. If gross revenue is low, diagnose as a conversion funnel issue (see conversion_rate drop guide above).
+4. If refunded_usd is high, diagnose as a refund spike (see refund_rate spike guide above).
+5. Review traffic quality metrics and funnel drop-off in `marts_channel_performance`.
+
+---
+
+## Data Freshness and Staleness
+
+### Freshness Indicators
+- All `marts_*` tables are updated on a daily batch schedule.
+- The `metric_date` column in `marts_daily_kpis` reflects the reporting date; the most recent row represents yesterday's data.
+- If the most recent `metric_date` is more than 2 days behind today, treat the data as stale and trigger a pipeline check.
+
+### Staleness Runbook
+- Stale data in `marts_daily_kpis` → check the `lakehouse-analytics-platform` pipeline run status.
+- Stale data in `marts_channel_performance` → verify the upstream channel attribution job completed.
+- Stale data in `marts_experiment_performance` → confirm the experiment event log ingestion is active.
+- Dashboard showing "No data for today" → always verify the most recent `metric_date` before escalating.
+
+### Cross-Tool Freshness Handling
+- **Power BI**: Dataset refresh schedules control data freshness; set refresh to run after the daily pipeline completes.
+- **Tableau**: Extract refresh schedules should be aligned to pipeline completion time.
+- **Looker**: PDT (Persistent Derived Table) rebuild triggers should fire after upstream mart tables are updated.
+- **Sigma / Mode / Metabase / Redash**: Direct-query tools reflect live data; no cache invalidation needed.
 
 ---
 
@@ -170,6 +223,10 @@ Customer health score questions should:
 | "What is conversion_rate?" | kpi_definitions + bi_semantics | Plain-language formula + table source |
 | "Why is my dashboard showing an alert?" | bi_semantics (Tableau section) | Alert Flag logic + runbook directive |
 | "Which LookML explore has channel metrics?" | bi_semantics (Looker section) | `channel_performance` + measures list |
-| "How is customer health scored?" | bi_seminitions + kpi_definitions | Blended formula + marts_customer_health |
+| "How is customer health scored?" | bi_semantics + kpi_definitions | Blended formula + marts_customer_health |
 | "Which experiment is performing best?" | schema.md + experiment_marts | marts_experiment_performance + variant breakdown |
 | "What is the refund rate trend?" | bi_semantics + schema | Refund rate formula + marts_daily_kpis |
+| "Why is conversion_rate dropping?" | bi_semantics (KPI Diagnostic) | Channel breakdown + experiment check |
+| "What BI tools support ad-hoc SQL?" | bi_semantics (Additional Tools) | Metabase / Redash + mart table reference |
+| "How do I know if my data is stale?" | bi_semantics (Data Freshness) | metric_date check + pipeline runbook |
+| "Which tool is best for cohort analysis?" | bi_semantics (Mode Analytics) | Mode Analytics + marts_customer_health |

@@ -1,7 +1,6 @@
 # Analytics Schema
 
 Core mart tables available for safe query templates:
-
 - `marts_daily_kpis`
 - `marts_channel_performance`
 - `marts_customer_health`
