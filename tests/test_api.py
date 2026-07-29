@@ -21,7 +21,18 @@ def test_health() -> None:
 def test_ask_and_sql_suggest() -> None:
     ask_res = client.post("/v1/ask", json={"question": "what is conversion_rate?", "top_k": 2})
     assert ask_res.status_code == 200
-    assert "Grounded findings" in ask_res.json()["answer"]
+    body = ask_res.json()
+    assert "Grounded findings" in body["answer"]
+    assert "sources" in body
+    assert "citations" in body
+    assert isinstance(body["citations"], list)
+    assert len(body["citations"]) > 0
+    # Each citation has required fields
+    for cit in body["citations"]:
+        assert "id" in cit
+        assert "source" in cit
+        assert "text" in cit
+        assert cit["source"] in body["sources"]
 
     sql_res = client.post("/v1/sql/suggest", json={"question": "show channel performance"})
     assert sql_res.status_code == 200

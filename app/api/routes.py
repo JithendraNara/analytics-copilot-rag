@@ -46,9 +46,16 @@ def ask(req: AskRequest) -> AskResponse:
     for idx, doc in enumerate(matches, start=1):
         answer_lines.append(f"{idx}. {doc['text']}")
 
+    citations = [
+        {"id": m["id"], "source": m["source"], "text": m["text"]}
+        for m in matches
+    ]
+
+
     return AskResponse(
         answer="\n".join(answer_lines),
         sources=sorted({m["source"] for m in matches}),
+        citations=citations,
     )
 
 

@@ -11,6 +11,10 @@ class AskRequest(BaseModel):
 class AskResponse(BaseModel):
     answer: str
     sources: list[str]
+    citations: list[dict] = Field(
+        default_factory=list,
+        description="Grounded citations with source-linked spans: id, source file, and text chunk"
+    )
 
 
 class SQLSuggestRequest(BaseModel):
