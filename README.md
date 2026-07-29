@@ -26,6 +26,8 @@ RAG-powered analytics assistant grounded in project docs, schemas, and KPI defin
 - `app/retrieval/indexer.py`: chunking + index creation.
 - `app/retrieval/retriever.py`: lexical/fuzzy scoring and top-k retrieval.
 - `app/sql_guardrails.py`: safe template selection for SQL suggestions.
+- `app/sql_validator.py`: strict DDL/DML/multi-statement guard with table allow-list (defense in depth around `sql_guardrails`).
+- `app/safety.py`: prompt-injection and jailbreak pattern detection for `/v1/ask`.
 - `app/api/routes.py`: ask/index/eval/sql endpoints.
 
 ## Repository Layout
