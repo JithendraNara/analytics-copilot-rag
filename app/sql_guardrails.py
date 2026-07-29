@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from app.models import SQLSuggestResponse
+from app.sql_validator import validate_sql
 
 SAFE_TEMPLATES = {
     "conversion": (
@@ -50,4 +51,13 @@ def suggest_sql(question: str) -> SQLSuggestResponse:
         key = "conversion"
 
     table, sql, rationale = SAFE_TEMPLATES[key]
+    # Defense in depth: every template must round-trip through the
+    # validator. If a future template edit silently introduces a
+    # forbidden keyword or unlisted table, the validator catches it
+    # here instead of leaking through the API.
+    valid, reason = validate_sql(sql)
+    if not valid:
+        raise RuntimeError(
+            f"SAFE_TEMPLATES produced sql that failed validation: {reason}"
+        )
     return SQLSuggestResponse(sql=sql, table=table, safe_sql=True, rationale=rationale)
